@@ -1,5 +1,6 @@
 import { Stage, Layer, Line } from 'react-konva';
 import { useRef, useState } from 'react';
+import Resistor from '../components/Resistor';
 
 const GRID_SIZE = 40;
 
@@ -8,6 +9,7 @@ export default function CircuitCanvas() {
 
     const [scale, setScale] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [resistors, setResistors] = useState([]);
 
     const snapToGrid = (value) =>
         Math.round(value / GRID_SIZE) * GRID_SIZE;
@@ -105,10 +107,35 @@ export default function CircuitCanvas() {
                     y: snapToGrid(pos.y)
                 };
 
-                console.log('Canvas position:', snapped);
+                setResistors((prev) => [
+                    ...prev,
+                    { id: Date.now(), x: snapped.x, y: snapped.y }
+                ]);
             }}
         >
-            <Layer>{lines}</Layer>
+            <Layer>
+                {lines}
+                {resistors.map((r) => (
+                    <Resistor
+                        key={r.id}
+                        x={r.x}
+                        y={r.y}
+                        onDragEnd={(pos) => {
+                            setResistors((prev) =>
+                                prev.map((item) =>
+                                    item.id === r.id
+                                        ? {
+                                            ...item,
+                                            x: snapToGrid(pos.x),
+                                            y: snapToGrid(pos.y)
+                                        }
+                                        : item
+                                )
+                            );
+                        }}
+                    />
+                ))}
+            </Layer>
         </Stage>
     );
 }
