@@ -1,6 +1,11 @@
 import { Stage, Layer, Line } from 'react-konva';
 import { useRef, useState } from 'react';
 import Resistor from '../components/Resistor';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    addComponent,
+    updateComponentPosition
+} from '../features/circuit/circuitSlice';
 
 const GRID_SIZE = 40;
 
@@ -9,7 +14,9 @@ export default function CircuitCanvas() {
 
     const [scale, setScale] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [resistors, setResistors] = useState([]);
+    const dispatch = useDispatch();
+    const components = useSelector((state) => state.circuit.components);
+
 
     const snapToGrid = (value) =>
         Math.round(value / GRID_SIZE) * GRID_SIZE;
@@ -107,34 +114,43 @@ export default function CircuitCanvas() {
                     y: snapToGrid(pos.y)
                 };
 
-                setResistors((prev) => [
-                    ...prev,
-                    { id: Date.now(), x: snapped.x, y: snapped.y }
-                ]);
+                dispatch(
+                    addComponent({
+                        id: crypto.randomUUID(),
+                        type: 'resistor',
+                        x: snapped.x,
+                        y: snapped.y,
+                        rotation: 0,
+                        props: {
+                            ohms: 220
+                        }
+                    })
+                );
             }}
         >
             <Layer>
                 {lines}
-                {resistors.map((r) => (
-                    <Resistor
-                        key={r.id}
-                        x={r.x}
-                        y={r.y}
-                        onDragEnd={(pos) => {
-                            setResistors((prev) =>
-                                prev.map((item) =>
-                                    item.id === r.id
-                                        ? {
-                                            ...item,
+                {components.map((c) => {
+                    if (c.type === 'resistor') {
+                        return (
+                            <Resistor
+                                key={c.id}
+                                x={c.x}
+                                y={c.y}
+                                onDragEnd={(pos) => {
+                                    dispatch(
+                                        updateComponentPosition({
+                                            id: c.id,
                                             x: snapToGrid(pos.x),
                                             y: snapToGrid(pos.y)
-                                        }
-                                        : item
-                                )
-                            );
-                        }}
-                    />
-                ))}
+                                        })
+                                    );
+                                }}
+                            />
+                        );
+                    }
+                    return null;
+                })}
             </Layer>
         </Stage>
     );
