@@ -4,7 +4,8 @@ const initialState = {
     components: [],
     selectedComponentId: null,
     tool: 'select',
-    wires: []
+    wires: [],
+    selectedWireId: null
 };
 
 const circuitSlice = createSlice({
@@ -47,6 +48,16 @@ const circuitSlice = createSlice({
                 id: crypto.randomUUID(),
                 ...action.payload
             });
+        },
+        selectWire: (state, action) => {
+            state.selectedWireId = action.payload;
+            state.selectedComponentId = null;
+        },
+        clearWireSelection: (state) => {
+            state.selectedWireId = null;
+        },
+        removeWire: (state, action) => {
+            state.wires = state.wires.filter(w => w.id !== action.payload);
         }
     }
 });
@@ -58,7 +69,9 @@ export const {
     clearSelection,
     removeComponent,
     setTool,
-    addWire
+    addWire,
+    selectWire,
+    removeWire
 } = circuitSlice.actions;
 
 export default circuitSlice.reducer;

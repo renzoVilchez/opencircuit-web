@@ -1,6 +1,7 @@
 import { Stage, Layer, Line } from 'react-konva';
 import { useRef, useState, useEffect } from 'react';
 import Resistor from '../components/Resistor';
+import Wire from '../components/Wire';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     addComponent,
@@ -8,7 +9,9 @@ import {
     selectComponent,
     clearSelection,
     removeComponent,
-    addWire
+    addWire,
+    selectWire,
+    removeWire
 } from '../features/circuit/circuitSlice';
 
 
@@ -29,6 +32,10 @@ export default function CircuitCanvas() {
     const components = useSelector((state) => state.circuit.components);
 
     const tool = useSelector(state => state.circuit.tool);
+
+    const selectedWireId = useSelector(
+        state => state.circuit.selectedWireId
+    );
 
     const handleStageClick = (e) => {
         const stage = e.target.getStage();
@@ -105,14 +112,18 @@ export default function CircuitCanvas() {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Delete' && selectedComponentId) {
+            if (e.key !== 'Delete') return;
+
+            if (selectedComponentId) {
                 dispatch(removeComponent(selectedComponentId));
+            } else if (selectedWireId) {
+                dispatch(removeWire(selectedWireId));
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedComponentId, dispatch]);
+    }, [selectedComponentId, selectedWireId, dispatch]);
 
     const snapToGrid = (value) =>
         Math.round(value / GRID_SIZE) * GRID_SIZE;
@@ -254,27 +265,18 @@ export default function CircuitCanvas() {
                     }
                     return null;
                 })}
-                {/* Wires existentes */}
-                {wires.map(w => {
-                    const fromComponent = components.find(c => c.id === w.from.componentId);
-                    const toComponent = components.find(c => c.id === w.to.componentId);
 
-                    if (!fromComponent || !toComponent) return null;
-
-                    const fromPos = getPinPosition(fromComponent, w.from.pinId);
-                    const toPos = getPinPosition(toComponent, w.to.pinId);
-
-
-
-                    return (
-                        <Line
-                            key={`${w.id}-${fromPos.x}-${fromPos.y}-${toPos.x}-${toPos.y}`}
-                            points={[fromPos.x, fromPos.y, toPos.x, toPos.y]}
-                            stroke="black"
-                            strokeWidth={2}
-                        />
-                    );
-                })}
+                {/* Wires*/}
+                {wires.map(w => (
+                    <Wire
+                        key={w.id}
+                        wire={w}
+                        components={components}
+                        getPinPosition={getPinPosition}
+                        isSelected={w.id === selectedWireId}
+                        onSelect={() => dispatch(selectWire(w.id))}
+                    />
+                ))}
 
                 {/* Línea dinámica */}
                 {wireStart && mousePos && startComponent && (
