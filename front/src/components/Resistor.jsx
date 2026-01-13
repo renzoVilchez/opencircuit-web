@@ -1,4 +1,4 @@
-import { Group, Line, Rect } from 'react-konva';
+import { Group, Line, Rect, Circle } from 'react-konva';
 
 export default function Resistor({
     x,
@@ -8,6 +8,13 @@ export default function Resistor({
     isSelected,
     tool
 }) {
+    const pins = [
+        { id: 'pin-1', x: -30, y: 0 },
+        { id: 'pin-2', x: 30, y: 0 }
+    ];
+
+    const PIN_RADIUS = 4;
+
     return (
         <Group
             x={x}
@@ -49,6 +56,17 @@ export default function Resistor({
 
             {/* Línea derecha */}
             <Line points={[10, 0, 30, 0]} stroke="black" strokeWidth={2} />
+
+            {/* Pines */}
+            {pins.map(pin => (
+                <Circle
+                    key={pin.id}
+                    x={pin.x}
+                    y={pin.y}
+                    radius={PIN_RADIUS}
+                    fill="red"
+                />
+            ))}
         </Group>
     );
 }
