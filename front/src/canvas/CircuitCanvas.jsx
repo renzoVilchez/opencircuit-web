@@ -1,11 +1,15 @@
 import { Stage, Layer, Line } from 'react-konva';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Resistor from '../components/Resistor';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     addComponent,
-    updateComponentPosition
+    updateComponentPosition,
+    selectComponent,
+    clearSelection,
+    removeComponent
 } from '../features/circuit/circuitSlice';
+
 
 const GRID_SIZE = 40;
 
@@ -16,6 +20,21 @@ export default function CircuitCanvas() {
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const dispatch = useDispatch();
     const components = useSelector((state) => state.circuit.components);
+
+    const selectedComponentId = useSelector(
+        (state) => state.circuit.selectedComponentId
+    );
+
+     useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Delete' && selectedComponentId) {
+                dispatch(removeComponent(selectedComponentId));
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedComponentId, dispatch]);
 
 
     const snapToGrid = (value) =>
@@ -94,38 +113,13 @@ export default function CircuitCanvas() {
             ref={stageRef}
             width={width}
             height={height}
-            draggable
             scaleX={scale}
             scaleY={scale}
             x={position.x}
             y={position.y}
             onWheel={handleWheel}
-            onDragEnd={(e) => {
-                setPosition({
-                    x: e.target.x(),
-                    y: e.target.y()
-                });
-            }}
             onClick={() => {
-                const pos = getCanvasPointerPosition();
-
-                const snapped = {
-                    x: snapToGrid(pos.x),
-                    y: snapToGrid(pos.y)
-                };
-
-                dispatch(
-                    addComponent({
-                        id: crypto.randomUUID(),
-                        type: 'resistor',
-                        x: snapped.x,
-                        y: snapped.y,
-                        rotation: 0,
-                        props: {
-                            ohms: 220
-                        }
-                    })
-                );
+                dispatch(clearSelection());
             }}
         >
             <Layer>
@@ -137,6 +131,8 @@ export default function CircuitCanvas() {
                                 key={c.id}
                                 x={c.x}
                                 y={c.y}
+                                isSelected={c.id === selectedComponentId}
+                                onSelect={() => dispatch(selectComponent(c.id))}
                                 onDragEnd={(pos) => {
                                     dispatch(
                                         updateComponentPosition({

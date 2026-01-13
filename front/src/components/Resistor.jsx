@@ -1,13 +1,19 @@
 import { Group, Line, Rect } from 'react-konva';
 
-export default function Resistor({ x, y, onDragEnd }) {
+export default function Resistor({
+    x,
+    y,
+    onDragEnd,
+    onSelect,
+    isSelected
+}) {
     return (
         <Group
             x={x}
             y={y}
             draggable
             onDragStart={(e) => {
-                e.cancelBubble = true; // 🔑 evita que el Stage se mueva
+                e.cancelBubble = true;
             }}
             onDragEnd={(e) => {
                 e.cancelBubble = true;
