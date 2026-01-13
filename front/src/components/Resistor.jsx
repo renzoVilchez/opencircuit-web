@@ -1,12 +1,14 @@
 import { Group, Line, Rect, Circle } from 'react-konva';
 
 export default function Resistor({
+    id,
     x,
     y,
     onDragEnd,
     onSelect,
     isSelected,
-    tool
+    tool,
+    onPinClick
 }) {
     const pins = [
         { id: 'pin-1', x: -30, y: 0 },
@@ -65,6 +67,17 @@ export default function Resistor({
                     y={pin.y}
                     radius={PIN_RADIUS}
                     fill="red"
+                    onClick={(e) => {
+                        e.cancelBubble = true;  
+                        if (onPinClick) {
+                            onPinClick({
+                                componentId: id,
+                                pinId: pin.id,
+                                x: x + pin.x,
+                                y: y + pin.y
+                            });
+                        }
+                    }}
                 />
             ))}
         </Group>

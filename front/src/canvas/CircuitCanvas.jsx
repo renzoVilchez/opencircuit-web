@@ -8,12 +8,19 @@ import {
     selectComponent,
     clearSelection,
     removeComponent,
+    addWire
 } from '../features/circuit/circuitSlice';
 
 
 const GRID_SIZE = 40;
 
 export default function CircuitCanvas() {
+
+    const [wireStart, setWireStart] = useState(null);
+    const [mousePos, setMousePos] = useState(null);
+
+    const wires = useSelector(state => state.circuit.wires);
+
     const stageRef = useRef(null);
 
     const [scale, setScale] = useState(1);
@@ -45,6 +52,51 @@ export default function CircuitCanvas() {
                 y: snapped.y
             }));
         }
+    };
+
+    const handlePinClick = (pin) => {
+        if (tool !== 'wire') return;
+
+        if (!wireStart) {
+            setWireStart(pin);
+            setMousePos(null);
+            return;
+        }
+
+        if (
+            wireStart.componentId === pin.componentId &&
+            wireStart.pinId === pin.pinId
+        ) {
+            return;
+        }
+
+        if (wireStart.componentId === pin.componentId) {
+            setWireStart(null);
+            return;
+        }
+
+        dispatch(addWire({
+            from: {
+                componentId: wireStart.componentId,
+                pinId: wireStart.pinId
+            },
+            to: {
+                componentId: pin.componentId,
+                pinId: pin.pinId
+            }
+        }));
+        setWireStart(null);
+    };
+
+    const handleMouseMove = (e) => {
+        if (!wireStart) return;
+
+        const stage = stageRef.current;
+        const pointer = stage.getPointerPosition();
+        setMousePos({
+            x: (pointer.x - position.x) / scale,
+            y: (pointer.y - position.y) / scale
+        });
     };
 
     const selectedComponentId = useSelector(
@@ -132,6 +184,25 @@ export default function CircuitCanvas() {
         };
     };
 
+    const getPinPosition = (component, pinId) => {
+        const pin = pinId === 'pin-1'
+            ? { x: -30, y: 0 }
+            : { x: 30, y: 0 };
+
+        return {
+            x: component.x + pin.x,
+            y: component.y + pin.y
+        };
+    };
+
+    const startComponent = wireStart
+        ? components.find(c => c.id === wireStart.componentId)
+        : null;
+
+    const startPos =
+        wireStart && startComponent
+            ? getPinPosition(startComponent, wireStart.pinId)
+            : null;
 
     return (
         <Stage
@@ -150,15 +221,19 @@ export default function CircuitCanvas() {
                     setPosition({ x: stage.x(), y: stage.y() });
                 }
             }}
+            onMouseMove={handleMouseMove}
             onClick={handleStageClick}
         >
             <Layer>
+                {/* Grid */}
                 {lines}
+                {/* Componentes */}
                 {components.map((c) => {
                     if (c.type === 'resistor') {
                         return (
                             <Resistor
                                 key={c.id}
+                                id={c.id}
                                 x={c.x}
                                 y={c.y}
                                 tool={tool}
@@ -173,11 +248,48 @@ export default function CircuitCanvas() {
                                         })
                                     );
                                 }}
+                                onPinClick={handlePinClick}
                             />
                         );
                     }
                     return null;
                 })}
+                {/* Wires existentes */}
+                {wires.map(w => {
+                    const fromComponent = components.find(c => c.id === w.from.componentId);
+                    const toComponent = components.find(c => c.id === w.to.componentId);
+
+                    if (!fromComponent || !toComponent) return null;
+
+                    const fromPos = getPinPosition(fromComponent, w.from.pinId);
+                    const toPos = getPinPosition(toComponent, w.to.pinId);
+
+
+
+                    return (
+                        <Line
+                            key={`${w.id}-${fromPos.x}-${fromPos.y}-${toPos.x}-${toPos.y}`}
+                            points={[fromPos.x, fromPos.y, toPos.x, toPos.y]}
+                            stroke="black"
+                            strokeWidth={2}
+                        />
+                    );
+                })}
+
+                {/* Línea dinámica */}
+                {wireStart && mousePos && startComponent && (
+                    <Line
+                        points={[
+                            startPos.x,
+                            startPos.y,
+                            mousePos.x,
+                            mousePos.y
+                        ]}
+                        stroke="gray"
+                        dash={[4, 4]}
+                        strokeWidth={2}
+                    />
+                )}
             </Layer>
         </Stage>
     );

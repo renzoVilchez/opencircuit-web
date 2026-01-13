@@ -3,7 +3,8 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     components: [],
     selectedComponentId: null,
-    tool: 'select'
+    tool: 'select',
+    wires: []
 };
 
 const circuitSlice = createSlice({
@@ -40,6 +41,12 @@ const circuitSlice = createSlice({
         },
         setTool: (state, action) => {
             state.tool = action.payload;
+        },
+        addWire: (state, action) => {
+            state.wires.push({
+                id: crypto.randomUUID(),
+                ...action.payload
+            });
         }
     }
 });
@@ -50,7 +57,8 @@ export const {
     selectComponent,
     clearSelection,
     removeComponent,
-    setTool
+    setTool,
+    addWire
 } = circuitSlice.actions;
 
 export default circuitSlice.reducer;
