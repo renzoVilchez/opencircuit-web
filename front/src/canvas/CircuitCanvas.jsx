@@ -7,7 +7,7 @@ import {
     updateComponentPosition,
     selectComponent,
     clearSelection,
-    removeComponent
+    removeComponent,
 } from '../features/circuit/circuitSlice';
 
 
@@ -21,11 +21,37 @@ export default function CircuitCanvas() {
     const dispatch = useDispatch();
     const components = useSelector((state) => state.circuit.components);
 
+    const tool = useSelector(state => state.circuit.tool);
+
+    const handleStageClick = (e) => {
+        const stage = e.target.getStage();
+
+        if (e.target !== stage) return;
+
+        const pos = getCanvasPointerPosition();
+        const snapped = {
+            x: snapToGrid(pos.x),
+            y: snapToGrid(pos.y),
+        };
+
+        if (tool === 'select') {
+            dispatch(clearSelection());
+        }
+
+        if (tool === 'add-resistor') {
+            dispatch(addComponent({
+                type: 'resistor',
+                x: snapped.x,
+                y: snapped.y
+            }));
+        }
+    };
+
     const selectedComponentId = useSelector(
         (state) => state.circuit.selectedComponentId
     );
 
-     useEffect(() => {
+    useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Delete' && selectedComponentId) {
                 dispatch(removeComponent(selectedComponentId));
@@ -35,7 +61,6 @@ export default function CircuitCanvas() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [selectedComponentId, dispatch]);
-
 
     const snapToGrid = (value) =>
         Math.round(value / GRID_SIZE) * GRID_SIZE;
@@ -117,10 +142,15 @@ export default function CircuitCanvas() {
             scaleY={scale}
             x={position.x}
             y={position.y}
+            draggable={tool === 'pan'}
             onWheel={handleWheel}
-            onClick={() => {
-                dispatch(clearSelection());
+            onDragMove={(e) => {
+                if (tool === 'pan') {
+                    const stage = e.target;
+                    setPosition({ x: stage.x(), y: stage.y() });
+                }
             }}
+            onClick={handleStageClick}
         >
             <Layer>
                 {lines}
@@ -131,6 +161,7 @@ export default function CircuitCanvas() {
                                 key={c.id}
                                 x={c.x}
                                 y={c.y}
+                                tool={tool}
                                 isSelected={c.id === selectedComponentId}
                                 onSelect={() => dispatch(selectComponent(c.id))}
                                 onDragEnd={(pos) => {

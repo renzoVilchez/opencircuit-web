@@ -2,7 +2,8 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     components: [],
-    selectedComponentId: null
+    selectedComponentId: null,
+    tool: 'select'
 };
 
 const circuitSlice = createSlice({
@@ -10,7 +11,10 @@ const circuitSlice = createSlice({
     initialState,
     reducers: {
         addComponent: (state, action) => {
-            state.components.push(action.payload);
+            state.components.push({
+                id: crypto.randomUUID(),
+                ...action.payload
+            });
         },
         updateComponentPosition: (state, action) => {
             const { id, x, y } = action.payload;
@@ -33,6 +37,9 @@ const circuitSlice = createSlice({
             if (state.selectedComponentId === action.payload) {
                 state.selectedComponentId = null;
             }
+        },
+        setTool: (state, action) => {
+            state.tool = action.payload;
         }
     }
 });
@@ -42,7 +49,8 @@ export const {
     updateComponentPosition,
     selectComponent,
     clearSelection,
-    removeComponent
+    removeComponent,
+    setTool
 } = circuitSlice.actions;
 
 export default circuitSlice.reducer;

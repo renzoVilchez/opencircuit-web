@@ -5,21 +5,28 @@ export default function Resistor({
     y,
     onDragEnd,
     onSelect,
-    isSelected
+    isSelected,
+    tool
 }) {
     return (
         <Group
             x={x}
             y={y}
-            draggable
+            draggable={tool === 'select'}
+            onClick={(e) => {
+                e.cancelBubble = true;
+                onSelect();
+            }}
+            onTap={(e) => {
+                e.cancelBubble = true;
+                onSelect();
+            }}
             onDragStart={(e) => {
                 e.cancelBubble = true;
             }}
             onDragEnd={(e) => {
                 e.cancelBubble = true;
-
                 const node = e.target;
-
                 onDragEnd({
                     x: node.x(),
                     y: node.y()
@@ -35,8 +42,8 @@ export default function Resistor({
                 y={-8}
                 width={20}
                 height={16}
-                stroke="black"
-                strokeWidth={2}
+                stroke={isSelected ? '#1976d2' : 'black'}
+                strokeWidth={isSelected ? 3 : 2}
                 fill="white"
             />
 
