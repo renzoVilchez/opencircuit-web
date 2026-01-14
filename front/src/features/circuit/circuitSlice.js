@@ -13,8 +13,17 @@ const circuitSlice = createSlice({
     initialState,
     reducers: {
         addComponent: (state, action) => {
+            const type = action.payload.type;
+
+            const count = state.components.filter(
+                c => c.type === type
+            ).length + 1;
+
             state.components.push({
                 id: crypto.randomUUID(),
+                rotation: 0,
+                label: type === 'resistor' ? `R${count}` : '',
+                props: { ohms: 220 },
                 ...action.payload
             });
         },
@@ -65,7 +74,16 @@ const circuitSlice = createSlice({
             if (comp) {
                 comp.props = { ...comp.props, ...props };
             }
+        },
+        updateComponentRotation: (state, action) => {
+            const comp = state.components.find(
+                c => c.id === action.payload.id
+            );
+            if (comp) {
+                comp.rotation = action.payload.rotation;
+            }
         }
+
     }
 });
 
@@ -79,7 +97,8 @@ export const {
     addWire,
     selectWire,
     removeWire,
-    updateComponentProps
+    updateComponentProps,
+    updateComponentRotation
 } = circuitSlice.actions;
 
 export default circuitSlice.reducer;

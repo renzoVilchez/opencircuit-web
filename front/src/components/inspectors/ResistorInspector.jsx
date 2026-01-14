@@ -1,6 +1,6 @@
-import { TextField, Box } from '@mui/material';
+import { TextField, Box, Button } from '@mui/material';
 import { useDispatch } from 'react-redux';
-import { updateComponentProps } from '../../features/circuit/circuitSlice';
+import { updateComponentProps, updateComponentRotation } from '../../features/circuit/circuitSlice';
 
 export default function ResistorInspector({ component }) {
     const dispatch = useDispatch();
@@ -9,7 +9,7 @@ export default function ResistorInspector({ component }) {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
                 label="Nombre"
-                value={component.props?.label || ''}
+                value={component.label || ''}
                 onChange={(e) =>
                     dispatch(updateComponentProps({
                         id: component.id,
@@ -31,6 +31,18 @@ export default function ResistorInspector({ component }) {
                 }
                 fullWidth
             />
+
+            <Button
+                variant="outlined"
+                onClick={() =>
+                    dispatch(updateComponentRotation({
+                        id: component.id,
+                        rotation: (component.rotation + 90) % 360
+                    }))
+                }
+            >
+                Rotar 90°
+            </Button>
         </Box>
     );
 }

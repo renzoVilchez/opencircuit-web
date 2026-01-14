@@ -245,8 +245,11 @@ export default function CircuitCanvas() {
                             <Resistor
                                 key={c.id}
                                 id={c.id}
+                                label={c.label}
                                 x={c.x}
                                 y={c.y}
+                                rotation={c.rotation ?? 0}
+                                props={c.props}
                                 tool={tool}
                                 isSelected={c.id === selectedComponentId}
                                 onSelect={() => dispatch(selectComponent(c.id))}

@@ -1,14 +1,17 @@
-import { Group, Line, Rect, Circle } from 'react-konva';
+import { Group, Line, Rect, Circle, Text } from 'react-konva';
 
 export default function Resistor({
     id,
     x,
     y,
+    rotation = 0,
     onDragEnd,
     onSelect,
     isSelected,
     tool,
-    onPinClick
+    onPinClick,
+    props,
+    label
 }) {
     const pins = [
         { id: 'pin-1', x: -30, y: 0 },
@@ -21,6 +24,7 @@ export default function Resistor({
         <Group
             x={x}
             y={y}
+            rotation={rotation}
             draggable={tool === 'select'}
             onClick={(e) => {
                 e.cancelBubble = true;
@@ -68,7 +72,7 @@ export default function Resistor({
                     radius={PIN_RADIUS}
                     fill="red"
                     onClick={(e) => {
-                        e.cancelBubble = true;  
+                        e.cancelBubble = true;
                         if (onPinClick) {
                             onPinClick({
                                 componentId: id,
@@ -80,6 +84,21 @@ export default function Resistor({
                     }}
                 />
             ))}
+
+            <Text
+                text={label}
+                fontSize={12}
+                y={-25}
+                x={-15}
+            />
+
+            <Text
+                text={`${props.ohms}Ω`}
+                fontSize={12}
+                y={15}
+                x={-20}
+            />
+
         </Group>
     );
 }
