@@ -1,11 +1,13 @@
-import { Box, IconButton, Tooltip } from '@mui/material';
+import { Box, IconButton, Tooltip, Divider } from '@mui/material';
 import MouseIcon from '@mui/icons-material/Mouse';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
 import PanToolIcon from '@mui/icons-material/PanTool';
+import SaveIcon from '@mui/icons-material/Save';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { setTool } from '../features/circuit/circuitSlice';
+import { setTool, saveProject, loadProject } from '../features/circuit/circuitSlice';
 
 export default function Toolbar() {
     const dispatch = useDispatch();
@@ -44,6 +46,26 @@ export default function Toolbar() {
                     </IconButton>
                 </Tooltip>
             ))}
+
+            <Divider sx={{ my: 0.5 }} />
+
+            <Tooltip title="Guardar proyecto" placement="right">
+                <IconButton
+                    size="small"
+                    onClick={() => dispatch(saveProject())}
+                >
+                    <SaveIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Cargar proyecto" placement="right">
+                <IconButton
+                    size="small"
+                    onClick={() => dispatch(loadProject())}
+                >
+                    <FolderOpenIcon fontSize="small" />
+                </IconButton>
+            </Tooltip>
         </Box>
     );
 }

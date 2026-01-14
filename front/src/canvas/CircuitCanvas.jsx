@@ -7,7 +7,7 @@ import {
     addComponent,
     updateComponentPosition,
     selectComponent,
-    clearSelection,
+    clearAllSelection,
     removeComponent,
     addWire,
     selectWire,
@@ -22,14 +22,18 @@ export default function CircuitCanvas() {
     const [wireStart, setWireStart] = useState(null);
     const [mousePos, setMousePos] = useState(null);
 
-    const wires = useSelector(state => state.circuit.wires);
+    const wires = useSelector(state => state.circuit.project.wires);
 
     const stageRef = useRef(null);
 
     const [scale, setScale] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [size, setSize] = useState({
+        width: window.innerWidth,
+        height: window.innerHeight
+    });
     const dispatch = useDispatch();
-    const components = useSelector((state) => state.circuit.components);
+    const components = useSelector((state) => state.circuit.project.components);
 
     const tool = useSelector(state => state.circuit.tool);
 
@@ -40,7 +44,10 @@ export default function CircuitCanvas() {
     const handleStageClick = (e) => {
         const stage = e.target.getStage();
 
-        if (e.target !== stage) return;
+        if (e.target !== stage) {
+            e.cancelBubble = true;
+            return;
+        }
 
         const pos = getCanvasPointerPosition();
         const snapped = {
@@ -49,7 +56,7 @@ export default function CircuitCanvas() {
         };
 
         if (tool === 'select') {
-            dispatch(clearSelection());
+            dispatch(clearAllSelection());
         }
 
         if (tool === 'add-resistor') {
@@ -62,7 +69,11 @@ export default function CircuitCanvas() {
     };
 
     const handlePinClick = (pin) => {
-        if (tool !== 'wire') return;
+        if (!wireStart) {
+            setWireStart(pin);
+            setMousePos(getCanvasPointerPosition());
+            return;
+        }
 
         if (!wireStart) {
             setWireStart(pin);
@@ -128,9 +139,15 @@ export default function CircuitCanvas() {
     const snapToGrid = (value) =>
         Math.round(value / GRID_SIZE) * GRID_SIZE;
 
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    useEffect(() => {
+        const onResize = () =>
+            setSize({ width: window.innerWidth, height: window.innerHeight });
 
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    const { width, height } = size;
     const lines = [];
 
     for (let i = 0; i < width / GRID_SIZE; i++) {

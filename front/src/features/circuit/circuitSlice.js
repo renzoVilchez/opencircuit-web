@@ -1,25 +1,42 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    components: [],
+    project: {
+        id: null,
+        name: '',
+        components: [],
+        wires: []
+    },
     selectedComponentId: null,
     tool: 'select',
-    wires: [],
-    selectedWireId: null
+    selectedWireId: null,
 };
 
 const circuitSlice = createSlice({
     name: 'circuit',
     initialState,
     reducers: {
+        setProject(state, action) {
+            state.project = action.payload;
+            state.selectedComponentId = null;
+            state.selectedWireId = null;
+        },
+
+        setComponents(state, action) {
+            state.project.components = action.payload;
+        },
+
+        setWires(state, action) {
+            state.project.wires = action.payload;
+        },
         addComponent: (state, action) => {
             const type = action.payload.type;
 
-            const count = state.components.filter(
+            const count = state.project.components.filter(
                 c => c.type === type
             ).length + 1;
 
-            state.components.push({
+            state.project.components.push({
                 id: crypto.randomUUID(),
                 rotation: 0,
                 label: type === 'resistor' ? `R${count}` : '',
@@ -29,7 +46,7 @@ const circuitSlice = createSlice({
         },
         updateComponentPosition: (state, action) => {
             const { id, x, y } = action.payload;
-            const component = state.components.find((c) => c.id === id);
+            const component = state.project.components.find((c) => c.id === id);
             if (component) {
                 component.x = x;
                 component.y = y;
@@ -42,7 +59,7 @@ const circuitSlice = createSlice({
             state.selectedComponentId = null;
         },
         removeComponent: (state, action) => {
-            state.components = state.components.filter(
+            state.project.components = state.project.components.filter(
                 (c) => c.id !== action.payload
             );
             if (state.selectedComponentId === action.payload) {
@@ -53,7 +70,7 @@ const circuitSlice = createSlice({
             state.tool = action.payload;
         },
         addWire: (state, action) => {
-            state.wires.push({
+            state.project.wires.push({
                 id: crypto.randomUUID(),
                 ...action.payload
             });
@@ -66,24 +83,27 @@ const circuitSlice = createSlice({
             state.selectedWireId = null;
         },
         removeWire: (state, action) => {
-            state.wires = state.wires.filter(w => w.id !== action.payload);
+            state.project.wires = state.project.wires.filter(w => w.id !== action.payload);
         },
         updateComponentProps: (state, action) => {
             const { id, props } = action.payload;
-            const comp = state.components.find(c => c.id === id);
+            const comp = state.project.components.find(c => c.id === id);
             if (comp) {
                 comp.props = { ...comp.props, ...props };
             }
         },
         updateComponentRotation: (state, action) => {
-            const comp = state.components.find(
+            const comp = state.project.components.find(
                 c => c.id === action.payload.id
             );
             if (comp) {
                 comp.rotation = action.payload.rotation;
             }
+        },
+        clearAllSelection: (state) => {
+            state.selectedComponentId = null;
+            state.selectedWireId = null;
         }
-
     }
 });
 
@@ -98,7 +118,33 @@ export const {
     selectWire,
     removeWire,
     updateComponentProps,
-    updateComponentRotation
+    updateComponentRotation,
+    setProject,
+    setComponents,
+    setWires,
+    clearAllSelection
 } = circuitSlice.actions;
 
 export default circuitSlice.reducer;
+
+export const saveProject = () => (dispatch, getState) => {
+    const { circuit } = getState();
+
+    const data = {
+        ...circuit.project,
+        updatedAt: Date.now()
+    };
+
+    localStorage.setItem(
+        'circuit-project',
+        JSON.stringify(data)
+    );
+};
+
+export const loadProject = () => dispatch => {
+    const raw = localStorage.getItem('circuit-project');
+    if (!raw) return;
+
+    const project = JSON.parse(raw);
+    dispatch(setProject(project));
+};
