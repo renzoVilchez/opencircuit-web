@@ -58,6 +58,13 @@ const circuitSlice = createSlice({
         },
         removeWire: (state, action) => {
             state.wires = state.wires.filter(w => w.id !== action.payload);
+        },
+        updateComponentProps: (state, action) => {
+            const { id, props } = action.payload;
+            const comp = state.components.find(c => c.id === id);
+            if (comp) {
+                comp.props = { ...comp.props, ...props };
+            }
         }
     }
 });
@@ -71,7 +78,8 @@ export const {
     setTool,
     addWire,
     selectWire,
-    removeWire
+    removeWire,
+    updateComponentProps
 } = circuitSlice.actions;
 
 export default circuitSlice.reducer;
