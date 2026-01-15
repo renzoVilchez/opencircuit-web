@@ -103,7 +103,15 @@ const circuitSlice = createSlice({
         clearAllSelection: (state) => {
             state.selectedComponentId = null;
             state.selectedWireId = null;
+        },
+        updateComponentLabel: (state, action) => {
+            const { id, label } = action.payload;
+            const comp = state.project.components.find(c => c.id === id);
+            if (comp) {
+                comp.label = label;
+            }
         }
+
     }
 });
 
@@ -122,7 +130,8 @@ export const {
     setProject,
     setComponents,
     setWires,
-    clearAllSelection
+    clearAllSelection,
+    updateComponentLabel
 } = circuitSlice.actions;
 
 export default circuitSlice.reducer;

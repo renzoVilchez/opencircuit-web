@@ -3,7 +3,7 @@ import ResistorInspector from './inspectors/ResistorInspector';
 
 export default function ComponentInspector() {
     const component = useSelector(state =>
-        state.circuit.components.find(
+        state.circuit.project.components.find(
             c => c.id === state.circuit.selectedComponentId
         )
     );
