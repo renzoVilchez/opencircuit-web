@@ -1,42 +1,30 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    project: {
-        id: null,
-        name: '',
-        components: [],
-        wires: []
-    },
+    components: [],
+    wires: [],
     selectedComponentId: null,
-    tool: 'select',
     selectedWireId: null,
+    tool: 'select'
 };
 
 const circuitSlice = createSlice({
     name: 'circuit',
     initialState,
     reducers: {
-        setProject(state, action) {
-            state.project = action.payload;
-            state.selectedComponentId = null;
-            state.selectedWireId = null;
+        loadCircuit(state, action) {
+            state.components = action.payload.components || [];
+            state.wires = action.payload.wires || [];
         },
 
-        setComponents(state, action) {
-            state.project.components = action.payload;
-        },
-
-        setWires(state, action) {
-            state.project.wires = action.payload;
-        },
-        addComponent: (state, action) => {
+        addComponent(state, action) {
             const type = action.payload.type;
 
-            const count = state.project.components.filter(
+            const count = state.components.filter(
                 c => c.type === type
             ).length + 1;
 
-            state.project.components.push({
+            state.components.push({
                 id: crypto.randomUUID(),
                 rotation: 0,
                 label: type === 'resistor' ? `R${count}` : '',
@@ -44,116 +32,100 @@ const circuitSlice = createSlice({
                 ...action.payload
             });
         },
-        updateComponentPosition: (state, action) => {
+
+        updateComponentPosition(state, action) {
             const { id, x, y } = action.payload;
-            const component = state.project.components.find((c) => c.id === id);
-            if (component) {
-                component.x = x;
-                component.y = y;
+            const comp = state.components.find(c => c.id === id);
+            if (comp) {
+                comp.x = x;
+                comp.y = y;
             }
         },
-        selectComponent: (state, action) => {
-            state.selectedComponentId = action.payload;
+
+        updateComponentProps(state, action) {
+            const comp = state.components.find(c => c.id === action.payload.id);
+            if (comp) {
+                comp.props = { ...comp.props, ...action.payload.props };
+            }
         },
-        clearSelection: (state) => {
-            state.selectedComponentId = null;
+
+        updateComponentRotation(state, action) {
+            const comp = state.components.find(c => c.id === action.payload.id);
+            if (comp) {
+                comp.rotation = action.payload.rotation;
+            }
         },
-        removeComponent: (state, action) => {
-            state.project.components = state.project.components.filter(
-                (c) => c.id !== action.payload
+
+        updateComponentLabel(state, action) {
+            const comp = state.components.find(c => c.id === action.payload.id);
+            if (comp) {
+                comp.label = action.payload.label;
+            }
+        },
+
+        removeComponent(state, action) {
+            state.components = state.components.filter(
+                c => c.id !== action.payload
             );
             if (state.selectedComponentId === action.payload) {
                 state.selectedComponentId = null;
             }
         },
-        setTool: (state, action) => {
-            state.tool = action.payload;
-        },
-        addWire: (state, action) => {
-            state.project.wires.push({
+
+        addWire(state, action) {
+            state.wires.push({
                 id: crypto.randomUUID(),
                 ...action.payload
             });
         },
-        selectWire: (state, action) => {
+
+        removeWire(state, action) {
+            state.wires = state.wires.filter(
+                w => w.id !== action.payload
+            );
+        },
+
+        selectComponent(state, action) {
+            state.selectedComponentId = action.payload;
+            state.selectedWireId = null;
+        },
+
+        selectWire(state, action) {
             state.selectedWireId = action.payload;
             state.selectedComponentId = null;
         },
-        clearWireSelection: (state) => {
+
+        clearSelection(state) {
+            state.selectedComponentId = null;
             state.selectedWireId = null;
         },
-        removeWire: (state, action) => {
-            state.project.wires = state.project.wires.filter(w => w.id !== action.payload);
-        },
-        updateComponentProps: (state, action) => {
-            const { id, props } = action.payload;
-            const comp = state.project.components.find(c => c.id === id);
-            if (comp) {
-                comp.props = { ...comp.props, ...props };
-            }
-        },
-        updateComponentRotation: (state, action) => {
-            const comp = state.project.components.find(
-                c => c.id === action.payload.id
-            );
-            if (comp) {
-                comp.rotation = action.payload.rotation;
-            }
-        },
+
         clearAllSelection: (state) => {
             state.selectedComponentId = null;
             state.selectedWireId = null;
         },
-        updateComponentLabel: (state, action) => {
-            const { id, label } = action.payload;
-            const comp = state.project.components.find(c => c.id === id);
-            if (comp) {
-                comp.label = label;
-            }
-        }
 
+        setTool(state, action) {
+            state.tool = action.payload;
+        }
     }
 });
 
 export const {
+    loadCircuit,
     addComponent,
     updateComponentPosition,
-    selectComponent,
-    clearSelection,
-    removeComponent,
-    setTool,
-    addWire,
-    selectWire,
-    removeWire,
     updateComponentProps,
     updateComponentRotation,
-    setProject,
-    setComponents,
-    setWires,
+    updateComponentLabel,
+    removeComponent,
+    addWire,
+    removeWire,
+    selectComponent,
+    selectWire,
+    clearSelection,
     clearAllSelection,
-    updateComponentLabel
+    setTool
 } = circuitSlice.actions;
 
 export default circuitSlice.reducer;
-
-export const saveProject = () => (dispatch, getState) => {
-    const { circuit } = getState();
-
-    const data = {
-        ...circuit.project,
-        updatedAt: Date.now()
-    };
-
-    localStorage.setItem(
-        'circuit-project',
-        JSON.stringify(data)
-    );
-};
-
-export const loadProject = () => dispatch => {
-    const raw = localStorage.getItem('circuit-project');
-    if (!raw) return;
-
-    const project = JSON.parse(raw);
-    dispatch(setProject(project));
-};

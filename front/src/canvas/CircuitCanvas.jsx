@@ -22,7 +22,7 @@ export default function CircuitCanvas() {
     const [wireStart, setWireStart] = useState(null);
     const [mousePos, setMousePos] = useState(null);
 
-    const wires = useSelector(state => state.circuit.project.wires);
+    const wires = useSelector(state => state.circuit.wires);
 
     const stageRef = useRef(null);
 
@@ -33,7 +33,7 @@ export default function CircuitCanvas() {
         height: window.innerHeight
     });
     const dispatch = useDispatch();
-    const components = useSelector((state) => state.circuit.project.components);
+    const components = useSelector((state) => state.circuit.components);
 
     const tool = useSelector(state => state.circuit.tool);
 

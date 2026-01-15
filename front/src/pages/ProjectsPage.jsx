@@ -5,7 +5,6 @@ import {
     createProject,
     openProject
 } from '../features/projects/projectsSlice';
-import { setProject } from '../features/circuit/circuitSlice';
 
 export default function ProjectsPage() {
     const projects = useSelector(state => state.projects.list);
@@ -26,7 +25,6 @@ export default function ProjectsPage() {
 
     const handleOpen = (project) => {
         dispatch(openProject(project.id));
-        dispatch(setProject(project.circuit));
         navigate('/editor');
     };
 

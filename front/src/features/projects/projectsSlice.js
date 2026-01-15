@@ -12,29 +12,24 @@ const projectsSlice = createSlice({
     initialState,
     reducers: {
         createProject: {
-            reducer(state, action) {
-                state.list.push(action.payload);
-                state.currentProjectId = action.payload.id;
-
-                localStorage.setItem(
-                    STORAGE_KEY,
-                    JSON.stringify(state.list)
-                );
-            },
             prepare(name) {
-                const now = Date.now();
                 return {
                     payload: {
                         id: nanoid(),
                         name,
-                        createdAt: now,
-                        updatedAt: now,
+                        createdAt: Date.now(),
+                        updatedAt: Date.now(),
                         circuit: {
                             components: [],
                             wires: []
                         }
                     }
                 };
+            },
+            reducer(state, action) {
+                state.list.push(action.payload);
+                state.currentProjectId = action.payload.id;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state.list));
             }
         },
 
@@ -42,22 +37,27 @@ const projectsSlice = createSlice({
             state.currentProjectId = action.payload;
         },
 
-        deleteProject(state, action) {
-            const id = action.payload;
-
-            state.list = state.list.filter(p => p.id !== id);
-
-            if (state.currentProjectId === id) {
-                state.currentProjectId = null;
-            }
-
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify(state.list)
+        updateProject(state, action) {
+            const project = state.list.find(
+                p => p.id === state.currentProjectId
             );
+            if (!project) return;
+
+            project.circuit = action.payload;
+            project.updatedAt = Date.now();
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.list));
         },
 
-        updateProject(state, action) {
+        deleteProject(state, action) {
+            state.list = state.list.filter(p => p.id !== action.payload);
+            if (state.currentProjectId === action.payload) {
+                state.currentProjectId = null;
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state.list));
+        },
+
+        saveCurrentProject(state, action) {
             const index = state.list.findIndex(
                 p => p.id === state.currentProjectId
             );
@@ -80,8 +80,9 @@ const projectsSlice = createSlice({
 export const {
     createProject,
     openProject,
+    updateProject,
     deleteProject,
-    updateProject
+    saveCurrentProject
 } = projectsSlice.actions;
 
 export default projectsSlice.reducer;

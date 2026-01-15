@@ -9,7 +9,8 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import { useNavigate } from 'react-router-dom';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { setTool, saveProject, loadProject } from '../features/circuit/circuitSlice';
+import { setTool } from '../features/circuit/circuitSlice';
+import { saveCurrentProject } from '../features/projects/projectsSlice';
 
 export default function Toolbar() {
     const navigate = useNavigate();
@@ -56,7 +57,7 @@ export default function Toolbar() {
             <Tooltip title="Guardar proyecto" placement="right">
                 <IconButton
                     size="small"
-                    onClick={() => dispatch(saveProject())}
+                    onClick={() => dispatch(saveCurrentProject(circuit))}
                 >
                     <SaveIcon fontSize="small" />
                 </IconButton>
