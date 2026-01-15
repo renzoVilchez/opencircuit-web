@@ -217,9 +217,13 @@ export default function CircuitCanvas() {
             ? { x: -30, y: 0 }
             : { x: 30, y: 0 };
 
+        const angle = (component.rotation ?? 0) * (Math.PI / 180);
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+
         return {
-            x: component.x + pin.x,
-            y: component.y + pin.y
+            x: component.x + pin.x * cos - pin.y * sin,
+            y: component.y + pin.x * sin + pin.y * cos
         };
     };
 
