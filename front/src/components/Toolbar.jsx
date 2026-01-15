@@ -6,10 +6,14 @@ import PanToolIcon from '@mui/icons-material/PanTool';
 import SaveIcon from '@mui/icons-material/Save';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 
+import { useNavigate } from 'react-router-dom';
+
 import { useDispatch, useSelector } from 'react-redux';
 import { setTool, saveProject, loadProject } from '../features/circuit/circuitSlice';
 
 export default function Toolbar() {
+    const navigate = useNavigate();
+
     const dispatch = useDispatch();
     const tool = useSelector(state => state.circuit.tool);
 
@@ -58,10 +62,10 @@ export default function Toolbar() {
                 </IconButton>
             </Tooltip>
 
-            <Tooltip title="Cargar proyecto" placement="right">
+            <Tooltip title="Abrir proyecto" placement="right">
                 <IconButton
                     size="small"
-                    onClick={() => dispatch(loadProject())}
+                    onClick={() => navigate('/projects')}
                 >
                     <FolderOpenIcon fontSize="small" />
                 </IconButton>
